@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"encoding"
@@ -9,7 +9,7 @@ import (
 )
 
 func render(w io.Writer, format string, v interface{}) error {
-	if format == "yaml" {
+	if format == "yaml" || format == "yml" {
 		return renderYAML(w, v)
 	}
 

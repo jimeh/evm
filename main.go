@@ -6,13 +6,20 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/jimeh/evm/commands"
+	"github.com/jimeh/evm/manager"
 )
 
 func main() {
-	cmd, err := rootCommand()
+	mgr, err := manager.New(nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
-		os.Exit(1)
+		fatal(err)
+	}
+
+	cmd, err := commands.NewEvm(mgr)
+	if err != nil {
+		fatal(err)
 	}
 
 	ctx, cancel := signal.NotifyContext(
@@ -25,4 +32,9 @@ func main() {
 	if err != nil {
 		os.Exit(1)
 	}
+}
+
+func fatal(err error) {
+	fmt.Fprintf(os.Stderr, "ERROR: %s\n", err)
+	os.Exit(1)
 }
