@@ -14,7 +14,7 @@ func NewUse(mgr *manager.Manager) (*cobra.Command, error) {
 		Aliases:           []string{"activate", "switch"},
 		Args:              cobra.ExactArgs(1),
 		ValidArgsFunction: useValidArgs(mgr),
-		RunE:              useRunE(mgr),
+		RunE:              WithPrettyLogging(useRunE(mgr)),
 	}
 
 	return cmd, nil

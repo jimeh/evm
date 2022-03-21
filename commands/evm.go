@@ -11,6 +11,11 @@ func NewEvm(mgr *manager.Manager) (*cobra.Command, error) {
 		Short: "A simple and opinionated Emacs Version Manager and build tool",
 	}
 
+	cmd.PersistentFlags().StringP(
+		"log-level", "l", "info",
+		"one of: trace, debug, info, warn, error, fatal, panic",
+	)
+
 	configCmd, err := NewConfig(mgr)
 	if err != nil {
 		return nil, err

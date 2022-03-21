@@ -22,7 +22,7 @@ func NewExec(mgr *manager.Manager) (*cobra.Command, error) {
 		DisableFlagsInUseLine: true,
 		Hidden:                true,
 		ValidArgsFunction:     execValidArgs(mgr),
-		RunE:                  execRunE(mgr),
+		RunE:                  WithPrettyLogging(execRunE(mgr)),
 	}
 
 	return cmd, nil

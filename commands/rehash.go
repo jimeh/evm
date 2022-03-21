@@ -13,7 +13,7 @@ func NewRehash(mgr *manager.Manager) (*cobra.Command, error) {
 		Short:             "Update shims for all or specific versions",
 		Aliases:           []string{"reshim"},
 		ValidArgsFunction: rehashValidArgs(mgr),
-		RunE:              rehashRunE(mgr),
+		RunE:              WithPrettyLogging(rehashRunE(mgr)),
 	}
 
 	return cmd, nil

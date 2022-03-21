@@ -15,7 +15,7 @@ func NewList(mgr *manager.Manager) (*cobra.Command, error) {
 		Aliases:           []string{"ls", "versions"},
 		Args:              cobra.ExactArgs(0),
 		ValidArgsFunction: noValidArgs,
-		RunE:              listRunE(mgr),
+		RunE:              WithPrettyLogging(listRunE(mgr)),
 	}
 
 	cmd.Flags().StringP("format", "f", "", "output format (yaml or json)")

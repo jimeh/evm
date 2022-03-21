@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -54,12 +56,20 @@ func (m *Manager) Get(ctx context.Context, version string) (*Version, error) {
 }
 
 func (m *Manager) Use(ctx context.Context, version string) error {
+	log.Debug().Str("version", version).Msg("use version")
+
 	ver, err := m.Get(ctx, version)
 	if err != nil {
 		return err
 	}
 
 	currentFile := filepath.Join(m.Config.Paths.Root, currentFileName)
+
+	log.Debug().
+		Str("path", currentFile).
+		Str("content", ver.Version).
+		Msg("updating current file")
+
 	err = os.WriteFile(currentFile, []byte(ver.Version), 0o644)
 	if err != nil {
 		return err
@@ -104,6 +114,13 @@ func (m *Manager) rehashVersions(
 	tidy bool,
 	versions []*Version,
 ) error {
+	if log.Debug().Enabled() {
+		var vers []string
+		for _, v := range versions {
+			vers = append(vers, v.Version)
+		}
+		log.Debug().Strs("versions", vers).Msg("reshashing versions")
+	}
 
 	programs := map[string]bool{}
 	for _, ver := range versions {
@@ -111,6 +128,14 @@ func (m *Manager) rehashVersions(
 			base := filepath.Base(bin)
 			programs[base] = true
 		}
+	}
+
+	log.Debug().
+		Str("path", m.Config.Paths.Shims).
+		Msg("ensure shims directory exists")
+	err := os.MkdirAll(m.Config.Paths.Shims, 0o755)
+	if err != nil {
+		return err
 	}
 
 	shims, err := m.ListShims(ctx)
@@ -129,13 +154,10 @@ func (m *Manager) rehashVersions(
 		return err
 	}
 
-	err = os.MkdirAll(m.Config.Paths.Shims, 0o755)
-	if err != nil {
-		return err
-	}
-
 	for name := range programs {
 		shimFile := filepath.Join(m.Config.Paths.Shims, name)
+
+		log.Debug().Str("path", shimFile).Msg("writing shim")
 		err = os.WriteFile(shimFile, shim, 0o755)
 		if err != nil {
 			return err
@@ -157,9 +179,11 @@ func (m *Manager) rehashVersions(
 		delete(shimMap, name)
 	}
 
-	if tidy {
+	if tidy && len(shimMap) > 0 {
+		log.Debug().Msg("tidying shims")
 		for name := range shimMap {
 			shimFile := filepath.Join(m.Config.Paths.Shims, name)
+			log.Debug().Str("path", shimFile).Msg("removing shim")
 			err := os.Remove(shimFile)
 			if err != nil {
 				return err
@@ -191,6 +215,8 @@ func (m *Manager) shim() ([]byte, error) {
 }
 
 func (m *Manager) ListShims(ctx context.Context) ([]string, error) {
+	log.Debug().Str("path", m.Config.Paths.Shims).Msg("reading shims")
+
 	entries, err := os.ReadDir(m.Config.Paths.Shims)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
@@ -262,6 +288,12 @@ func (m *Manager) ExecVersion(
 			execEnv[i] = "PATH=" + ver.BinDir + ":" + execEnv[i][5:]
 		}
 	}
+
+	log.Debug().
+		Str("bin", bin).
+		Str("extra_path", ver.BinDir).
+		Strs("args", args).
+		Msg("executing")
 
 	return syscall.Exec(bin, execArgs, execEnv)
 }

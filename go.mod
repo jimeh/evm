@@ -3,6 +3,7 @@ module github.com/jimeh/evm
 go 1.17
 
 require (
+	github.com/rs/zerolog v1.26.1
 	github.com/sethvargo/go-envconfig v0.5.0
 	github.com/spf13/cobra v1.3.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b

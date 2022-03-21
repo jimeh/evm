@@ -11,7 +11,7 @@ func NewConfig(mgr *manager.Manager) (*cobra.Command, error) {
 		Short:     "Show evm environment/setup details",
 		Aliases:   []string{"env", "info"},
 		ValidArgs: []string{},
-		RunE:      configRunE(mgr),
+		RunE:      WithPrettyLogging(configRunE(mgr)),
 	}
 
 	cmd.Flags().StringP("format", "f", "", "output format (yaml or json)")
