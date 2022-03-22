@@ -7,8 +7,10 @@ import (
 
 func NewEvm(mgr *manager.Manager) (*cobra.Command, error) {
 	cmd := &cobra.Command{
-		Use:   "evm",
-		Short: "A simple and opinionated Emacs Version Manager and build tool",
+		Use: "evm",
+		Short: "A simple and opinionated Emacs Version Manager " +
+			"and build tool",
+		PersistentPreRunE: PersistentPreRunE,
 	}
 
 	cmd.PersistentFlags().StringP(

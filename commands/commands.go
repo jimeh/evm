@@ -11,17 +11,13 @@ import (
 
 type runEFunc func(cmd *cobra.Command, _ []string) error
 
-func WithPrettyLogging(
-	f func(cmd *cobra.Command, args []string) error,
-) func(cmd *cobra.Command, args []string) error {
-	return func(cmd *cobra.Command, args []string) error {
-		err := SetupZerolog(cmd)
-		if err != nil {
-			return err
-		}
-
-		return f(cmd, args)
+func PersistentPreRunE(cmd *cobra.Command, _ []string) error {
+	err := SetupZerolog(cmd)
+	if err != nil {
+		return err
 	}
+
+	return nil
 }
 
 func SetupZerolog(cmd *cobra.Command) error {
