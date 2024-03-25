@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"io"
+	"strings"
 
 	"github.com/jimeh/evm/manager"
+	"github.com/jimeh/go-render"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +19,9 @@ func NewList(mgr *manager.Manager) (*cobra.Command, error) {
 		RunE:              listRunE(mgr),
 	}
 
-	cmd.Flags().StringP("format", "f", "", "output format (yaml or json)")
+	cmd.Flags().StringP(
+		"format", "f", "text", "output format ,\"text\", \"yaml\", or \"json\"",
+	)
 
 	return cmd, nil
 }
@@ -33,40 +36,44 @@ func listRunE(mgr *manager.Manager) runEFunc {
 		}
 
 		output := &listOutput{
-			Current:  mgr.CurrentVersion(),
-			SetBy:    mgr.CurrentSetBy(),
+			Current: listOutputCurrent{
+				Version: mgr.CurrentVersion(),
+				SetBy:   mgr.CurrentSetBy(),
+			},
 			Versions: versions,
 		}
 
-		return render(cmd.OutOrStdout(), format, output)
+		return render.Pretty(cmd.OutOrStdout(), format, output)
 	}
 }
 
 type listOutput struct {
-	Current  string             `yaml:"current" json:"current"`
-	SetBy    string             `yaml:"current_set_by,omitempty" json:"current_set_by,omitempty"`
+	Current  listOutputCurrent  `yaml:"current" json:"current"`
 	Versions []*manager.Version `yaml:"versions" json:"versions"`
 }
 
-func (lr *listOutput) WriteTo(w io.Writer) (int64, error) {
-	var b []byte
+type listOutputCurrent struct {
+	Version string `yaml:"version" json:"version"`
+	SetBy   string `yaml:"set_by,omitempty" json:"set_by,omitempty"`
+}
 
-	for _, ver := range lr.Versions {
-		if lr.Current == ver.Version {
-			b = append(b, []byte("* ")...)
+func (lo *listOutput) String() string {
+	buf := &strings.Builder{}
+
+	for _, ver := range lo.Versions {
+		if lo.Current.Version == ver.Version {
+			buf.WriteString("* ")
 		} else {
-			b = append(b, []byte("  ")...)
+			buf.WriteString("  ")
 		}
 
-		b = append(b, []byte(ver.Version)...)
-		if lr.Current == ver.Version && lr.SetBy != "" {
-			b = append(b, []byte(" (set by "+lr.SetBy+")")...)
+		buf.WriteString(ver.Version)
+		if lo.Current.Version == ver.Version && lo.Current.SetBy != "" {
+			buf.WriteString(" (set by " + lo.Current.SetBy + ")")
 		}
 
-		b = append(b, byte('\n'))
+		buf.WriteByte('\n')
 	}
 
-	n, err := w.Write(b)
-
-	return int64(n), err
+	return buf.String()
 }
