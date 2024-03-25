@@ -1,6 +1,6 @@
 module github.com/jimeh/evm
 
-go 1.17
+go 1.22
 
 require (
 	github.com/jimeh/go-render v0.0.1
